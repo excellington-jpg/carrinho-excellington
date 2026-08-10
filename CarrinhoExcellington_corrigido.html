@@ -1,0 +1,1201 @@
+﻿Abrir este código:
+```html
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Carrinho Excellington Supermercado</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    /* Background personalizado simulando a vista interna do carrinho de supermercado */
+    body {
+      background: linear-gradient(rgba(15, 23, 42, 0.82), rgba(15, 23, 42, 0.94)),
+                  url('https://images.unsplash.com/photo-1578916171728-46686eac8d58?auto=format&fit=crop&w=1200&q=80') center/cover no-repeat fixed;
+    }
+
+    /* Ajuste da transmissão da câmera ao vivo */
+    #live-video {
+      object-fit: cover;
+      width: 100%;
+      height: 100%;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body class="text-slate-100 min-h-screen flex flex-col font-sans antialiased selection:bg-indigo-500 selection:text-white">
+
+  <!-- Cabeçalho Principal -->
+  <header class="sticky top-0 z-30 bg-slate-900/90 backdrop-blur-md border-b border-slate-700/50 px-4 py-3 shadow-lg flex justify-between items-center">
+    <div class="flex items-center gap-2.5">
+      <div class="bg-indigo-600 p-2 rounded-xl text-white shadow-md shadow-indigo-500/30">
+        <i data-lucide="shopping-cart" class="w-5 h-5"></i>
+      </div>
+      <div>
+        <h1 class="font-extrabold text-base leading-tight bg-clip-text text-transparent bg-gradient-to-r from-indigo-300 via-white to-emerald-300">
+          Excellington
+        </h1>
+        <p class="text-[10px] text-slate-400">Supermercado Smart</p>
+      </div>
+    </div>
+    
+    <div class="flex items-center gap-2">
+      <!-- Botão do Histórico -->
+      <button onclick="toggleHistoryModal()" class="bg-slate-800 hover:bg-slate-700 active:scale-95 text-xs text-indigo-300 border border-indigo-500/30 font-medium px-3 py-2 rounded-lg transition-all flex items-center gap-1.5 shadow-sm">
+        <i data-lucide="history" class="w-4 h-4"></i>
+        <span>Histórico</span>
+      </button>
+
+      <!-- Botão de Termos de Uso e Responsabilidade (substituindo a lixeira) -->
+      <button onclick="toggleTermsModal()" class="bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-300 hover:text-indigo-300 p-2 rounded-lg border border-slate-700 transition-all" title="Termos de Uso e Responsabilidade">
+        <i data-lucide="shield-check" class="w-4 h-4"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- BLOQUEIO DE ACESSO: R$ 5,00 VIA PIX -->
+  <div id="payment-gate" class="fixed inset-0 z-[100] bg-slate-950/95 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="bg-slate-800 border border-emerald-500/30 rounded-2xl w-full max-w-sm p-5 shadow-2xl">
+      <div class="text-center">
+        <div class="mx-auto w-14 h-14 rounded-2xl bg-emerald-500/15 text-emerald-400 flex items-center justify-center mb-3"><i data-lucide="qr-code" class="w-7 h-7"></i></div>
+        <h2 class="text-lg font-extrabold text-white">Acesso ao Excellington</h2>
+        <p class="text-xs text-slate-400 mt-1">Faça uma contribuição única de <strong class="text-emerald-400">R$ 5,00 via Pix</strong> para liberar o aplicativo.</p>
+      </div>
+      <div id="payment-form-area" class="mt-5 space-y-3">
+        <input id="payer-email" type="email" required placeholder="Seu e-mail" class="w-full bg-slate-900 border border-slate-700 focus:border-emerald-500 text-white text-sm rounded-lg p-3 outline-none">
+        <button id="create-pix-btn" onclick="createPixPayment()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-2"><i data-lucide="qr-code" class="w-4 h-4"></i><span>Pagar R$ 5,00 via Pix</span></button>
+      </div>
+      <div id="pix-payment-area" class="hidden mt-4 text-center space-y-3">
+        <p class="text-xs text-slate-300">Escaneie o QR Code ou copie o Pix Copia e Cola.</p>
+        <img id="pix-qr" class="mx-auto w-52 h-52 bg-white p-2 rounded-xl" alt="QR Code Pix">
+        <textarea id="pix-copy-paste" readonly rows="4" class="w-full bg-slate-900 border border-slate-700 text-[10px] text-slate-300 rounded-lg p-2 resize-none"></textarea>
+        <button onclick="copyPixCode()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-2.5 rounded-xl">Copiar Pix Copia e Cola</button>
+        <div id="payment-status" class="text-xs text-amber-300">Aguardando confirmação do pagamento...</div>
+      </div>
+      <p id="payment-error" class="hidden text-xs text-rose-300 mt-3 text-center"></p>
+      <p class="text-[10px] text-slate-500 text-center mt-4">O acesso só é liberado após a confirmação do pagamento pelo servidor.</p>
+    </div>
+  </div>
+
+  <!-- Conteúdo Principal -->
+  <main class="flex-1 max-w-md w-full mx-auto p-4 pb-36 flex flex-col gap-4">
+
+    <!-- Seção de Câmera e Captura de Fotos -->
+    <section class="bg-slate-800/80 backdrop-blur-md rounded-2xl p-3 border border-slate-700/60 shadow-xl flex flex-col gap-2">
+      <div class="flex justify-between items-center px-1">
+        <div class="flex items-center gap-2">
+          <i data-lucide="camera" class="w-4 h-4 text-indigo-400"></i>
+          <span class="text-xs font-semibold text-slate-200 uppercase tracking-wider">Câmera do Produto</span>
+        </div>
+        <button id="toggle-cam-btn" onclick="ensureCameraRunning()" class="text-[11px] text-indigo-300 hover:text-indigo-200 bg-indigo-500/10 px-2.5 py-1 rounded-lg border border-indigo-500/20 font-medium flex items-center gap-1 transition-all">
+          <i data-lucide="camera" class="w-3 h-3"></i>
+          <span id="cam-btn-text">Ativar Câmera</span>
+        </button>
+      </div>
+
+      <!-- Container do Visor de Vídeo -->
+      <div class="relative w-full h-48 bg-slate-950 rounded-xl overflow-hidden border border-slate-700/80 flex items-center justify-center">
+        <!-- Elemento de Vídeo com suporte a muted e playsinline para iOS e Android -->
+        <video id="live-video" autoplay playsinline muted class="hidden w-full h-full object-cover"></video>
+
+        <!-- Placeholder quando a câmera estiver desligada -->
+        <div id="video-placeholder" class="flex flex-col items-center text-center p-4">
+          <div class="p-3 bg-slate-800/80 rounded-full mb-2 text-indigo-400">
+            <i data-lucide="camera" class="w-6 h-6"></i>
+          </div>
+          <p class="text-xs font-semibold text-slate-200">Câmera Desligada</p>
+          <p class="text-[11px] text-slate-400 mt-1 max-w-[220px]">Toque em "Ativar Câmera" para visualização ao vivo ou clique abaixo para fotografar diretamente.</p>
+        </div>
+
+        <!-- Linhas Guia de Enquadramento -->
+        <div id="camera-guides" class="hidden absolute inset-0 border-2 border-dashed border-indigo-400/40 m-3 rounded-lg pointer-events-none flex items-center justify-center">
+          <span class="bg-slate-900/80 backdrop-blur-xs text-[10px] text-indigo-200 px-2 py-0.5 rounded border border-indigo-500/30">
+            Enquadre o produto
+          </span>
+        </div>
+      </div>
+
+      <!-- Botão de Disparo Principal -->
+      <button onclick="capturePhotoAndAdd()" class="w-full bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 active:scale-98 text-white font-bold py-3 px-4 rounded-xl shadow-lg shadow-indigo-600/30 transition-all flex items-center justify-center gap-2 border border-indigo-500/40">
+        <i data-lucide="aperture" class="w-5 h-5"></i>
+        <span>Tirar Foto e Cadastrar</span>
+      </button>
+
+      <!-- Input de Arquivo / Foto Nativa do Smartphone (Fallback Seguro) -->
+      <input type="file" id="fallback-file-input" accept="image/*" capture="environment" onchange="handleFallbackPhoto(event)" class="hidden">
+    </section>
+
+    <!-- Lista de Produtos no Carrinho -->
+    <section class="flex-1 flex flex-col min-h-0">
+      <div class="flex items-center justify-between mb-2 px-1">
+        <h2 class="text-sm font-bold text-slate-200 uppercase tracking-wider flex items-center gap-2">
+          <i data-lucide="shopping-bag" class="w-4 h-4 text-emerald-400"></i>
+          Itens no Carrinho
+        </h2>
+        <div class="flex items-center gap-2">
+          <span id="cart-item-count" class="text-xs font-semibold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-2.5 py-0.5 rounded-full">
+            0 itens
+          </span>
+          <button onclick="clearCart()" class="text-slate-400 hover:text-rose-400 text-xs p-1" title="Esvaziar Carrinho">
+            <i data-lucide="trash-2" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Container Rolável dos Itens -->
+      <div id="cart-items-list" class="space-y-2.5 custom-scrollbar overflow-y-auto max-h-[calc(100vh-440px)] pr-0.5">
+        <!-- Inserção Dinâmica via Javascript -->
+      </div>
+
+      <!-- Mensagem de Carrinho Vazio -->
+      <div id="empty-cart-msg" class="flex flex-col items-center justify-center py-8 px-4 text-center bg-slate-800/40 rounded-2xl border border-dashed border-slate-700/60 my-auto">
+        <div class="p-3 bg-slate-700/40 rounded-full mb-2 text-slate-400">
+          <i data-lucide="shopping-cart" class="w-7 h-7"></i>
+        </div>
+        <p class="text-sm font-medium text-slate-300">Nenhum item no carrinho</p>
+        <p class="text-xs text-slate-400 mt-1 max-w-[220px]">Fotografe o produto e informe o nome e o valor unitário.</p>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Painel Totalizador Fixo -->
+  <footer class="fixed bottom-0 left-0 right-0 z-30 bg-slate-900/95 backdrop-blur-xl border-t border-slate-700/80 p-4 shadow-[0_-10px_25px_-5px_rgba(0,0,0,0.5)]">
+    <div class="max-w-md mx-auto flex items-center justify-between">
+      <div class="flex flex-col">
+        <span class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Total Acumulado</span>
+        <div class="flex items-baseline gap-1">
+          <span class="text-xs text-emerald-400 font-bold">R$</span>
+          <span id="cart-total-price" class="text-2xl font-black text-white tracking-tight">0,00</span>
+        </div>
+      </div>
+      <button onclick="toggleSummaryModal()" class="bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-bold px-5 py-3 rounded-xl shadow-lg shadow-emerald-600/30 transition-all flex items-center gap-2 text-sm">
+        <i data-lucide="receipt" class="w-4 h-4"></i>
+        <span>Resumo</span>
+      </button>
+    </div>
+  </footer>
+
+  <!-- MODAL 1: Cadastro do Produto com Foto Capturada -->
+  <div id="new-product-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-slate-800 border border-slate-700 rounded-2xl w-full max-w-sm p-5 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+      <div class="flex justify-between items-center mb-4">
+        <div class="flex items-center gap-2">
+          <div class="p-2 bg-indigo-500/20 text-indigo-400 rounded-lg">
+            <i data-lucide="plus-circle" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-slate-100 text-base">Adicionar Produto</h3>
+            <p class="text-xs text-slate-400">Insira os dados do item capturado</p>
+          </div>
+        </div>
+        <button onclick="closeNewProductModal()" class="text-slate-400 hover:text-white p-1">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="new-product-form" onsubmit="handleNewProductSubmit(event)" class="space-y-4">
+        
+        <!-- Preview da Foto Registrada -->
+        <div class="flex items-center gap-3 bg-slate-900/60 p-2.5 rounded-xl border border-slate-700">
+          <div id="photo-preview-container" class="w-14 h-14 bg-slate-900 border border-slate-700 rounded-lg overflow-hidden flex items-center justify-center text-slate-500 flex-shrink-0">
+            <i data-lucide="image" class="w-6 h-6"></i>
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="text-xs font-semibold text-slate-200">Foto do Produto</p>
+            <p class="text-[10px] text-slate-400">Foto anexada com sucesso. Toque no ícone na lista para ampliar.</p>
+          </div>
+        </div>
+
+        <!-- Nome do Produto -->
+        <div>
+          <label for="product-name" class="block text-xs font-medium text-slate-300 mb-1">Nome do Produto</label>
+          <input type="text" id="product-name" required placeholder="Ex: Biscoito Recheado 130g" class="w-full bg-slate-900 border border-slate-700 focus:border-indigo-500 text-white text-sm rounded-lg p-2.5 outline-none transition-all">
+        </div>
+
+        <!-- Preço Unitário -->
+        <div>
+          <label for="product-price" class="block text-xs font-medium text-slate-300 mb-1">Preço Unitário (R$)</label>
+          <input type="number" id="product-price" step="0.01" min="0.01" required placeholder="0,00" class="w-full bg-slate-900 border border-slate-700 focus:border-indigo-500 text-white text-sm rounded-lg p-2.5 outline-none transition-all">
+        </div>
+
+        <!-- Botões -->
+        <div class="flex gap-2 pt-2">
+          <button type="button" onclick="closeNewProductModal()" class="flex-1 bg-slate-700 hover:bg-slate-600 text-slate-200 font-medium py-2.5 rounded-lg text-sm transition-all">
+            Cancelar
+          </button>
+          <button type="submit" class="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-2.5 rounded-lg text-sm shadow-lg shadow-indigo-600/30 transition-all">
+            Salvar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL 2: Editar Produto (Preço, Nome, Foto) -->
+  <div id="edit-product-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-slate-800 border border-slate-700 rounded-2xl w-full max-w-sm p-5 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+      <div class="flex justify-between items-center mb-4">
+        <div class="flex items-center gap-2">
+          <div class="p-2 bg-indigo-500/20 text-indigo-400 rounded-lg">
+            <i data-lucide="edit-3" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-slate-100 text-base">Editar Produto</h3>
+            <p class="text-xs text-slate-400">Atualize o preço, nome ou imagem</p>
+          </div>
+        </div>
+        <button onclick="closeEditProductModal()" class="text-slate-400 hover:text-white p-1">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="edit-product-form" onsubmit="handleEditProductSubmit(event)" class="space-y-4">
+        <input type="hidden" id="edit-product-id">
+
+        <!-- Preview da Foto e Opção de Alterar -->
+        <div class="flex items-center gap-3 bg-slate-900/60 p-2.5 rounded-xl border border-slate-700">
+          <div id="edit-photo-preview-container" class="w-14 h-14 bg-slate-900 border border-slate-700 rounded-lg overflow-hidden flex items-center justify-center text-slate-500 flex-shrink-0">
+            <i data-lucide="image" class="w-6 h-6"></i>
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="text-xs font-semibold text-slate-200">Foto do Produto</p>
+            <label class="inline-flex items-center gap-1.5 text-[11px] text-indigo-300 hover:text-indigo-200 font-medium cursor-pointer mt-1 bg-indigo-500/20 px-2.5 py-1 rounded-md border border-indigo-500/30 transition-all">
+              <i data-lucide="camera" class="w-3.5 h-3.5"></i>
+              <span>Nova Foto</span>
+              <input type="file" id="edit-photo-input" accept="image/*" capture="environment" onchange="handleEditPhotoSelect(event)" class="hidden">
+            </label>
+          </div>
+        </div>
+
+        <!-- Nome do Produto -->
+        <div>
+          <label for="edit-product-name" class="block text-xs font-medium text-slate-300 mb-1">Nome do Produto</label>
+          <input type="text" id="edit-product-name" required class="w-full bg-slate-900 border border-slate-700 focus:border-indigo-500 text-white text-sm rounded-lg p-2.5 outline-none transition-all">
+        </div>
+
+        <!-- Preço Unitário -->
+        <div>
+          <label for="edit-product-price" class="block text-xs font-medium text-slate-300 mb-1">Preço Unitário (R$)</label>
+          <input type="number" id="edit-product-price" step="0.01" min="0.01" required class="w-full bg-slate-900 border border-slate-700 focus:border-indigo-500 text-white text-sm rounded-lg p-2.5 outline-none transition-all">
+        </div>
+
+        <!-- Botões -->
+        <div class="flex gap-2 pt-2">
+          <button type="button" onclick="closeEditProductModal()" class="flex-1 bg-slate-700 hover:bg-slate-600 text-slate-200 font-medium py-2.5 rounded-lg text-sm transition-all">
+            Cancelar
+          </button>
+          <button type="submit" class="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-2.5 rounded-lg text-sm shadow-lg shadow-indigo-600/30 transition-all">
+            Salvar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL 3: Visualizar Foto Ampliada em Modal -->
+  <div id="image-viewer-modal" class="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md hidden flex flex-col items-center justify-center p-4" onclick="closeImageViewer()">
+    <div class="relative max-w-sm w-full bg-slate-900 border border-slate-700 rounded-2xl p-3 shadow-2xl flex flex-col items-center" onclick="event.stopPropagation()">
+      <button onclick="closeImageViewer()" class="absolute top-3 right-3 bg-slate-800 text-slate-300 p-1.5 rounded-full hover:text-white">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+      <h3 id="viewer-title" class="font-bold text-slate-100 text-sm mb-3 pr-8 w-full text-left truncate">Foto do Produto</h3>
+      <div class="w-full h-64 bg-slate-950 rounded-xl overflow-hidden border border-slate-800 flex items-center justify-center">
+        <img id="viewer-image" src="" alt="Imagem Ampliada" class="w-full h-full object-contain">
+      </div>
+      <p class="text-[11px] text-slate-400 mt-2">Toque fora da caixa para fechar</p>
+    </div>
+  </div>
+
+  <!-- MODAL 4: Central de Histórico (Compras Finalizadas + Catálogo de Produtos) -->
+  <div id="history-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-slate-800 border border-slate-700 rounded-2xl w-full max-w-md p-5 shadow-2xl flex flex-col max-h-[85vh]">
+      <div class="flex justify-between items-center mb-3 pb-2 border-b border-slate-700">
+        <h3 class="font-bold text-slate-100 text-base flex items-center gap-2">
+          <i data-lucide="history" class="w-5 h-5 text-indigo-400"></i>
+          Histórico e Consultas
+        </h3>
+        <button onclick="toggleHistoryModal()" class="text-slate-400 hover:text-white">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Navegação por Abas -->
+      <div class="flex bg-slate-900/80 p-1 rounded-xl mb-3 border border-slate-700/60">
+        <button id="tab-purchases-btn" onclick="switchHistoryTab('purchases')" class="flex-1 py-1.5 px-3 rounded-lg text-xs font-semibold text-white bg-indigo-600 transition-all">
+          Compras Anteriores
+        </button>
+        <button id="tab-catalog-btn" onclick="switchHistoryTab('catalog')" class="flex-1 py-1.5 px-3 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 transition-all">
+          Catálogo de Produtos
+        </button>
+      </div>
+
+      <!-- Conteúdo da Aba 1: Compras Finalizadas Passadas -->
+      <div id="tab-purchases-content" class="flex-1 overflow-y-auto space-y-2.5 my-1 custom-scrollbar text-xs">
+        <!-- Renderização via JS -->
+      </div>
+
+      <!-- Conteúdo da Aba 2: Catálogo de Produtos para Reuso -->
+      <div id="tab-catalog-content" class="hidden flex-1 overflow-y-auto space-y-2 my-1 custom-scrollbar text-xs">
+        <!-- Renderização via JS -->
+      </div>
+
+      <button onclick="toggleHistoryModal()" class="w-full mt-3 bg-slate-700 hover:bg-slate-600 text-slate-200 font-semibold py-2.5 rounded-xl transition-all">
+        Fechar
+      </button>
+    </div>
+  </div>
+
+  <!-- MODAL 5: Resumo Final do Pedido -->
+  <div id="summary-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-slate-800 border border-slate-700 rounded-2xl w-full max-w-sm p-5 shadow-2xl flex flex-col max-h-[85vh]">
+      <div class="flex justify-between items-center mb-4 pb-2 border-b border-slate-700">
+        <h3 class="font-bold text-slate-100 text-base flex items-center gap-2">
+          <i data-lucide="file-text" class="w-5 h-5 text-emerald-400"></i>
+          Resumo da Compra
+        </h3>
+        <button onclick="toggleSummaryModal()" class="text-slate-400 hover:text-white">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div id="summary-list" class="flex-1 overflow-y-auto space-y-2.5 my-2 custom-scrollbar text-xs">
+        <!-- Renderização via JS -->
+      </div>
+
+      <div class="pt-3 border-t border-slate-700 mt-2 space-y-2">
+        <div class="flex justify-between text-xs text-slate-400">
+          <span>Total de Unidades:</span>
+          <span id="summary-total-items" class="text-slate-200 font-semibold">0</span>
+        </div>
+        <div class="flex justify-between text-sm font-bold text-white">
+          <span>Valor Final:</span>
+          <span id="summary-total-price" class="text-emerald-400">R$ 0,00</span>
+        </div>
+        <button onclick="finishPurchase()" class="w-full mt-2 bg-emerald-600 hover:bg-emerald-500 active:scale-98 text-white font-bold py-3 rounded-xl shadow-lg shadow-emerald-600/30 transition-all flex items-center justify-center gap-2 text-sm">
+          <i data-lucide="check-circle" class="w-4 h-4"></i>
+          Finalizar Compra
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 6: Termos de Uso e Responsabilidade -->
+  <div id="terms-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-slate-800 border border-slate-700 rounded-2xl w-full max-w-sm p-5 shadow-2xl flex flex-col max-h-[85vh]">
+      <div class="flex justify-between items-center mb-3 pb-2 border-b border-slate-700">
+        <h3 class="font-bold text-slate-100 text-base flex items-center gap-2">
+          <i data-lucide="shield-check" class="w-5 h-5 text-indigo-400"></i>
+          Termos e Responsabilidade
+        </h3>
+        <button onclick="toggleTermsModal()" class="text-slate-400 hover:text-white">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="flex-1 overflow-y-auto space-y-3 my-2 custom-scrollbar text-xs text-slate-300 pr-1 leading-relaxed">
+        <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-700">
+          <h4 class="font-semibold text-indigo-300 text-xs mb-1 flex items-center gap-1.5">
+            <i data-lucide="lock" class="w-3.5 h-3.5"></i>
+            Privacidade e Armazenamento
+          </h4>
+          <p>Todos os dados de compras, fotos e valores digitados são salvos <strong>exclusivamente no seu dispositivo</strong> (LocalStorage). Nenhuma informação pessoal ou foto é enviada para servidores externos.</p>
+        </div>
+
+        <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-700">
+          <h4 class="font-semibold text-emerald-300 text-xs mb-1 flex items-center gap-1.5">
+            <i data-lucide="calculator" class="w-3.5 h-3.5"></i>
+            Controle Pessoal de Orcamento
+          </h4>
+          <p>O aplicativo funciona como uma ferramenta auxiliar de apoio ao consumidor para estimar e controlar o total do carrinho de compras em tempo real.</p>
+        </div>
+
+        <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-700">
+          <h4 class="font-semibold text-amber-300 text-xs mb-1 flex items-center gap-1.5">
+            <i data-lucide="alert-triangle" class="w-3.5 h-3.5"></i>
+            Isenção de Responsabilidade
+          </h4>
+          <p>Os preços e nomes informados no aplicativo são digitados diretamente pelo usuário. O valor cobrado no caixa do supermercado prevalece sobre as estimativas anotadas no app.</p>
+        </div>
+      </div>
+
+      <button onclick="toggleTermsModal()" class="w-full mt-3 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-2.5 rounded-xl transition-all">
+        Entendi e Concordo
+      </button>
+    </div>
+  </div>
+
+  <!-- SCRIPT DE LÓGICA DO APLICATIVO -->
+  <script>
+    const HISTORY_STORAGE_KEY = 'excellington_history_db';
+    const PURCHASES_STORAGE_KEY = 'excellington_purchases_db';
+    const CART_STORAGE_KEY = 'excellington_cart_db';
+
+    const DEFAULT_PRODUCT_IMAGE = "https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=120&q=80";
+
+    // Catálogo de produtos cadastrados
+    let historyDatabase = JSON.parse(localStorage.getItem(HISTORY_STORAGE_KEY)) || [
+      { id: "1", name: "Leite Integral 1L", price: 5.49, image: "https://images.unsplash.com/photo-1563636619-e9143da7973b?auto=format&fit=crop&w=120&q=80" },
+      { id: "2", name: "Café Torrado 500g", price: 17.80, image: DEFAULT_PRODUCT_IMAGE }
+    ];
+
+    // Histórico de compras finalizadas
+    let purchasesHistory = JSON.parse(localStorage.getItem(PURCHASES_STORAGE_KEY)) || [];
+
+    let cart = JSON.parse(localStorage.getItem(CART_STORAGE_KEY)) || [];
+    let currentCapturedPhoto = null;
+    let currentEditPhoto = null;
+    let cameraStream = null;
+
+    window.addEventListener('DOMContentLoaded', () => {
+      lucide.createIcons();
+      renderCart();
+      saveHistory();
+      savePurchases();
+      initializeAccessGate();
+    });
+
+    function saveHistory() {
+      localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(historyDatabase));
+    }
+
+    function savePurchases() {
+      localStorage.setItem(PURCHASES_STORAGE_KEY, JSON.stringify(purchasesHistory));
+    }
+
+    function saveCart() {
+      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
+    }
+
+    // --- CÂMERA AO VIVO ---
+    let cameraStarting = false;
+    let cameraRetryTimer = null;
+
+    async function startCameraStream() {
+      if (!hasAppAccess() || cameraStarting || cameraStream) return;
+      const videoEl = document.getElementById('live-video');
+      const placeholderEl = document.getElementById('video-placeholder');
+      const guidesEl = document.getElementById('camera-guides');
+      const camBtnText = document.getElementById('cam-btn-text');
+      if (!navigator.mediaDevices?.getUserMedia) return;
+
+      cameraStarting = true;
+      const constraintsOptions = [
+        { video: { facingMode: { exact: "environment" }, width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false },
+        { video: { facingMode: "environment", width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false },
+        { video: true, audio: false }
+      ];
+      let stream = null;
+      for (const constraints of constraintsOptions) {
+        try { stream = await navigator.mediaDevices.getUserMedia(constraints); if (stream) break; }
+        catch (err) { console.warn("Tentativa de inicialização da câmera:", err); }
+      }
+      cameraStarting = false;
+      if (!stream) return;
+
+      cameraStream = stream;
+      videoEl.srcObject = stream;
+      videoEl.classList.remove('hidden');
+      placeholderEl.classList.add('hidden');
+      guidesEl.classList.remove('hidden');
+      camBtnText.textContent = "Câmera Ativa";
+      stream.getVideoTracks().forEach(track => {
+        track.onended = () => { cameraStream = null; if (hasAppAccess() && document.visibilityState === 'visible') scheduleCameraRestart(); };
+      });
+      try { await videoEl.play(); } catch (e) { console.warn("Autoplay da câmera:", e); }
+    }
+
+    function scheduleCameraRestart() {
+      clearTimeout(cameraRetryTimer);
+      cameraRetryTimer = setTimeout(() => {
+        if (hasAppAccess() && document.visibilityState === 'visible' && !cameraStream) startCameraStream();
+      }, 500);
+    }
+
+    function ensureCameraRunning() { if (hasAppAccess() && !cameraStream) startCameraStream(); }
+
+    function stopCameraStream() {
+      clearTimeout(cameraRetryTimer);
+      if (cameraStream) { cameraStream.getTracks().forEach(track => track.stop()); cameraStream = null; }
+      const videoEl = document.getElementById('live-video');
+      if (videoEl) videoEl.srcObject = null;
+      document.getElementById('live-video').classList.add('hidden');
+      document.getElementById('video-placeholder').classList.remove('hidden');
+      document.getElementById('camera-guides').classList.add('hidden');
+      document.getElementById('cam-btn-text').textContent = "Ativar Câmera";
+    }
+
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && hasAppAccess()) scheduleCameraRestart(); });
+    window.addEventListener('focus', () => { if (hasAppAccess()) scheduleCameraRestart(); });
+    window.addEventListener('pageshow', () => { if (hasAppAccess()) scheduleCameraRestart(); });
+
+    // --- DISPARO E CAPTURA DE FOTO ---
+    function capturePhotoAndAdd() {
+      const videoEl = document.getElementById('live-video');
+
+      if (cameraStream && !videoEl.classList.contains('hidden') && videoEl.readyState === 4) {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        canvas.width = 320;
+        canvas.height = 320;
+
+        const videoW = videoEl.videoWidth || 640;
+        const videoH = videoEl.videoHeight || 480;
+        const minDim = Math.min(videoW, videoH);
+        const startX = (videoW - minDim) / 2;
+        const startY = (videoH - minDim) / 2;
+
+        ctx.drawImage(videoEl, startX, startY, minDim, minDim, 0, 0, 320, 320);
+
+        currentCapturedPhoto = canvas.toDataURL('image/jpeg', 0.7);
+        openNewProductModal();
+      } else {
+        document.getElementById('fallback-file-input').click();
+      }
+    }
+
+    function handleFallbackPhoto(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          
+          canvas.width = 320;
+          canvas.height = 320;
+
+          const minDim = Math.min(img.width, img.height);
+          const startX = (img.width - minDim) / 2;
+          const startY = (img.height - minDim) / 2;
+
+          ctx.drawImage(img, startX, startY, minDim, minDim, 0, 0, 320, 320);
+
+          currentCapturedPhoto = canvas.toDataURL('image/jpeg', 0.7);
+          openNewProductModal();
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // --- GERENCIAMENTO DO CARRINHO ---
+    function addToCart(name, price, image) {
+      const existingIndex = cart.findIndex(item => item.name.toLowerCase() === name.toLowerCase());
+
+      if (existingIndex > -1) {
+        cart[existingIndex].quantity += 1;
+        if (image && cart[existingIndex].image === DEFAULT_PRODUCT_IMAGE) {
+          cart[existingIndex].image = image;
+        }
+      } else {
+        cart.push({
+          id: Date.now().toString(),
+          name: name,
+          price: parseFloat(price),
+          image: image || DEFAULT_PRODUCT_IMAGE,
+          quantity: 1
+        });
+      }
+
+      addToHistory(name, price, image);
+
+      saveCart();
+      renderCart();
+    }
+
+    function addToHistory(name, price, image) {
+      const existingIndex = historyDatabase.findIndex(item => item.name.toLowerCase() === name.toLowerCase());
+      if (existingIndex > -1) {
+        historyDatabase[existingIndex].price = parseFloat(price);
+        if (image) historyDatabase[existingIndex].image = image;
+      } else {
+        historyDatabase.push({
+          id: Date.now().toString(),
+          name: name,
+          price: parseFloat(price),
+          image: image || DEFAULT_PRODUCT_IMAGE
+        });
+      }
+      saveHistory();
+    }
+
+    function updateQuantity(id, delta) {
+      const itemIndex = cart.findIndex(item => item.id === id);
+      if (itemIndex > -1) {
+        cart[itemIndex].quantity += delta;
+        if (cart[itemIndex].quantity <= 0) {
+          cart.splice(itemIndex, 1);
+        }
+        saveCart();
+        renderCart();
+      }
+    }
+
+    function removeFromCart(id) {
+      cart = cart.filter(item => item.id !== id);
+      saveCart();
+      renderCart();
+    }
+
+    function clearCart() {
+      if (cart.length === 0) return;
+      if (confirm("Deseja realmente esvaziar o carrinho de compras?")) {
+        cart = [];
+        saveCart();
+        renderCart();
+      }
+    }
+
+    // --- RENDERIZAÇÃO DA INTERFACE ---
+    function renderCart() {
+      const container = document.getElementById('cart-items-list');
+      const emptyMsg = document.getElementById('empty-cart-msg');
+      const totalEl = document.getElementById('cart-total-price');
+      const itemCountEl = document.getElementById('cart-item-count');
+
+      container.innerHTML = '';
+
+      if (cart.length === 0) {
+        emptyMsg.classList.remove('hidden');
+        totalEl.textContent = '0,00';
+        itemCountEl.textContent = '0 itens';
+        return;
+      }
+
+      emptyMsg.classList.add('hidden');
+
+      let grandTotal = 0;
+      let totalUnits = 0;
+
+      cart.forEach(item => {
+        const subtotal = item.price * item.quantity;
+        grandTotal += subtotal;
+        totalUnits += item.quantity;
+
+        const card = document.createElement('div');
+        card.className = "bg-slate-800/90 border border-slate-700/80 rounded-xl p-2.5 shadow-md flex items-center justify-between gap-2 transition-all";
+        
+        card.innerHTML = `
+          <!-- Ícone / Foto Clicável do Produto -->
+          <button onclick="openImageViewer('${escapeHtml(item.name)}', '${escapeHtml(item.image)}')" class="relative w-12 h-12 flex-shrink-0 bg-slate-900 rounded-lg overflow-hidden border border-indigo-500/40 hover:border-indigo-400 flex items-center justify-center group" title="Ampliar foto">
+            <img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.name)}" class="w-full h-full object-cover" onerror="this.src='${DEFAULT_PRODUCT_IMAGE}'">
+            <div class="absolute inset-0 bg-indigo-950/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all">
+              <i data-lucide="maximize-2" class="w-4 h-4 text-white"></i>
+            </div>
+          </button>
+
+          <!-- Informações do Produto -->
+          <div class="flex-1 min-w-0">
+            <h4 class="font-bold text-slate-100 text-xs sm:text-sm truncate">${escapeHtml(item.name)}</h4>
+            <div class="flex items-center gap-2 mt-0.5">
+              <span class="text-[11px] text-slate-400">R$ ${item.price.toFixed(2).replace('.', ',')}</span>
+              <span class="text-[11px] font-semibold text-emerald-400">R$ ${subtotal.toFixed(2).replace('.', ',')}</span>
+            </div>
+          </div>
+
+          <!-- Controles de Quantidade -->
+          <div class="flex items-center gap-1 bg-slate-900 border border-slate-700 p-1 rounded-lg">
+            <button onclick="updateQuantity('${item.id}', -1)" class="w-6 h-6 flex items-center justify-center bg-slate-800 hover:bg-slate-700 active:scale-90 text-slate-200 rounded font-bold text-xs transition-all">
+              -
+            </button>
+            <span class="w-5 text-center text-xs font-bold text-indigo-300 font-mono">${item.quantity}</span>
+            <button onclick="updateQuantity('${item.id}', 1)" class="w-6 h-6 flex items-center justify-center bg-indigo-600 hover:bg-indigo-500 active:scale-90 text-white rounded font-bold text-xs transition-all">
+              +
+            </button>
+          </div>
+
+          <!-- Botão Editar -->
+          <button onclick="openEditProductModal('${item.id}')" class="p-1.5 text-slate-400 hover:text-indigo-300 transition-all" title="Editar produto">
+            <i data-lucide="pencil" class="w-4 h-4"></i>
+          </button>
+
+          <!-- Lixeira Excluir -->
+          <button onclick="removeFromCart('${item.id}')" class="p-1.5 text-slate-500 hover:text-rose-400 transition-all" title="Remover item">
+            <i data-lucide="trash-2" class="w-4 h-4"></i>
+          </button>
+        `;
+
+        container.appendChild(card);
+      });
+
+      totalEl.textContent = grandTotal.toFixed(2).replace('.', ',');
+      itemCountEl.textContent = `${totalUnits} ${totalUnits === 1 ? 'item' : 'itens'}`;
+
+      lucide.createIcons();
+    }
+
+    // --- MODAL DE NOVO PRODUTO ---
+    function openNewProductModal() {
+      document.getElementById('product-name').value = '';
+      document.getElementById('product-price').value = '';
+      
+      const container = document.getElementById('photo-preview-container');
+      if (currentCapturedPhoto) {
+        container.innerHTML = `<img src="${currentCapturedPhoto}" class="w-full h-full object-cover">`;
+      } else {
+        container.innerHTML = `<i data-lucide="image" class="w-6 h-6"></i>`;
+        lucide.createIcons();
+      }
+
+      document.getElementById('new-product-modal').classList.remove('hidden');
+      setTimeout(() => document.getElementById('product-name').focus(), 100);
+    }
+
+    function closeNewProductModal() {
+      document.getElementById('new-product-modal').classList.add('hidden');
+    }
+
+    function handleNewProductSubmit(e) {
+      e.preventDefault();
+      const name = document.getElementById('product-name').value.trim();
+      const price = parseFloat(document.getElementById('product-price').value);
+
+      if (!name || isNaN(price)) return;
+
+      addToCart(name, price, currentCapturedPhoto);
+      closeNewProductModal();
+    }
+
+    // --- MODAL DE EDIÇÃO DE PRODUTO ---
+    function openEditProductModal(id) {
+      const item = cart.find(i => i.id === id);
+      if (!item) return;
+
+      document.getElementById('edit-product-id').value = item.id;
+      document.getElementById('edit-product-name').value = item.name;
+      document.getElementById('edit-product-price').value = item.price.toFixed(2);
+      
+      currentEditPhoto = item.image;
+      updateEditPhotoPreview(currentEditPhoto);
+
+      document.getElementById('edit-product-modal').classList.remove('hidden');
+      setTimeout(() => document.getElementById('edit-product-price').focus(), 100);
+    }
+
+    function closeEditProductModal() {
+      document.getElementById('edit-product-modal').classList.add('hidden');
+      currentEditPhoto = null;
+    }
+
+    function updateEditPhotoPreview(imgSrc) {
+      const container = document.getElementById('edit-photo-preview-container');
+      if (imgSrc) {
+        container.innerHTML = `<img src="${imgSrc}" class="w-full h-full object-cover">`;
+      } else {
+        container.innerHTML = `<i data-lucide="image" class="w-6 h-6"></i>`;
+        lucide.createIcons();
+      }
+    }
+
+    function handleEditPhotoSelect(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          
+          canvas.width = 320;
+          canvas.height = 320;
+
+          const minDim = Math.min(img.width, img.height);
+          const startX = (img.width - minDim) / 2;
+          const startY = (img.height - minDim) / 2;
+
+          ctx.drawImage(img, startX, startY, minDim, minDim, 0, 0, 320, 320);
+
+          currentEditPhoto = canvas.toDataURL('image/jpeg', 0.7);
+          updateEditPhotoPreview(currentEditPhoto);
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function handleEditProductSubmit(e) {
+      e.preventDefault();
+      const id = document.getElementById('edit-product-id').value;
+      const newName = document.getElementById('edit-product-name').value.trim();
+      const newPrice = parseFloat(document.getElementById('edit-product-price').value);
+
+      if (!id || !newName || isNaN(newPrice)) return;
+
+      const itemIndex = cart.findIndex(i => i.id === id);
+      if (itemIndex > -1) {
+        cart[itemIndex].name = newName;
+        cart[itemIndex].price = newPrice;
+        if (currentEditPhoto) {
+          cart[itemIndex].image = currentEditPhoto;
+        }
+
+        addToHistory(newName, newPrice, currentEditPhoto || cart[itemIndex].image);
+
+        saveCart();
+        renderCart();
+      }
+
+      closeEditProductModal();
+    }
+
+    // --- VISUALIZADOR DE IMAGEM AMPLIADA ---
+    function openImageViewer(title, imgSrc) {
+      document.getElementById('viewer-title').textContent = title;
+      document.getElementById('viewer-image').src = imgSrc;
+      document.getElementById('image-viewer-modal').classList.remove('hidden');
+    }
+
+    function closeImageViewer() {
+      document.getElementById('image-viewer-modal').classList.add('hidden');
+    }
+
+    // --- MODAL DE TERMOS DE USO E RESPONSABILIDADE ---
+    function toggleTermsModal() {
+      const modal = document.getElementById('terms-modal');
+      modal.classList.toggle('hidden');
+    }
+
+    // --- MODAL DA CENTRAL DE HISTÓRICO (ABAS) ---
+    function toggleHistoryModal() {
+      const modal = document.getElementById('history-modal');
+      modal.classList.toggle('hidden');
+
+      if (!modal.classList.contains('hidden')) {
+        switchHistoryTab('purchases');
+      }
+    }
+
+    function switchHistoryTab(tab) {
+      const btnPurchases = document.getElementById('tab-purchases-btn');
+      const btnCatalog = document.getElementById('tab-catalog-btn');
+      const contentPurchases = document.getElementById('tab-purchases-content');
+      const contentCatalog = document.getElementById('tab-catalog-content');
+
+      if (tab === 'purchases') {
+        btnPurchases.className = "flex-1 py-1.5 px-3 rounded-lg text-xs font-semibold text-white bg-indigo-600 transition-all";
+        btnCatalog.className = "flex-1 py-1.5 px-3 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 transition-all";
+        contentPurchases.classList.remove('hidden');
+        contentCatalog.classList.add('hidden');
+        renderPurchasesList();
+      } else {
+        btnCatalog.className = "flex-1 py-1.5 px-3 rounded-lg text-white bg-indigo-600 transition-all";
+        btnPurchases.className = "flex-1 py-1.5 px-3 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 transition-all";
+        contentCatalog.classList.remove('hidden');
+        contentPurchases.classList.add('hidden');
+        renderHistoryList();
+      }
+    }
+
+    function renderPurchasesList() {
+      const container = document.getElementById('tab-purchases-content');
+      container.innerHTML = '';
+
+      if (purchasesHistory.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-8">
+            <i data-lucide="receipt" class="w-8 h-8 text-slate-500 mx-auto mb-2 opacity-60"></i>
+            <p class="text-slate-400 text-xs">Nenhuma compra finalizada registrada ainda.</p>
+          </div>`;
+        lucide.createIcons();
+        return;
+      }
+
+      purchasesHistory.sort((a, b) => b.timestamp - a.timestamp);
+
+      purchasesHistory.forEach((purchase, index) => {
+        const dateStr = new Date(purchase.timestamp).toLocaleDateString('pt-BR', {
+          day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
+        });
+
+        const card = document.createElement('div');
+        card.className = "bg-slate-900/90 border border-slate-700/80 rounded-xl p-3 space-y-2";
+
+        card.innerHTML = `
+          <div class="flex justify-between items-start">
+            <div>
+              <span class="text-[10px] font-bold uppercase text-indigo-400 tracking-wider">Compra #${purchasesHistory.length - index}</span>
+              <p class="text-[11px] text-slate-400 flex items-center gap-1 mt-0.5">
+                <i data-lucide="calendar" class="w-3 h-3"></i>
+                ${dateStr}
+              </p>
+            </div>
+            <div class="text-right">
+              <span class="text-xs text-slate-400">Total</span>
+              <p class="font-extrabold text-sm text-emerald-400">R$ ${purchase.total.toFixed(2).replace('.', ',')}</p>
+            </div>
+          </div>
+
+          <div class="flex gap-2 pt-1">
+            <button onclick="togglePurchaseDetails('${purchase.id}')" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 py-1.5 px-2 rounded-lg text-[11px] font-medium flex items-center justify-center gap-1 transition-all">
+              <i data-lucide="eye" class="w-3.5 h-3.5"></i>
+              Ver ${purchase.items.length} itens
+            </button>
+            <button onclick="reusePurchase('${purchase.id}')" class="bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 py-1.5 px-2 rounded-lg text-[11px] font-medium flex items-center justify-center gap-1 transition-all">
+              <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+              Reutilizar
+            </button>
+            <button onclick="deletePurchaseHistory('${purchase.id}')" class="text-slate-500 hover:text-rose-400 p-1.5" title="Excluir histórico">
+              <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+
+          <div id="purchase-details-${purchase.id}" class="hidden pt-2 border-t border-slate-800 space-y-1.5 text-[11px]">
+            ${purchase.items.map(item => `
+              <div class="flex justify-between items-center bg-slate-950/50 p-1.5 rounded-lg">
+                <div class="flex items-center gap-2 min-w-0">
+                  <img src="${escapeHtml(item.image)}" class="w-6 h-6 rounded object-cover border border-slate-800" onerror="this.src='${DEFAULT_PRODUCT_IMAGE}'">
+                  <span class="text-slate-200 truncate">${escapeHtml(item.name)} (${item.quantity}x)</span>
+                </div>
+                <span class="font-semibold text-slate-300">R$ ${(item.price * item.quantity).toFixed(2).replace('.', ',')}</span>
+              </div>
+            `).join('')}
+          </div>
+        `;
+
+        container.appendChild(card);
+      });
+
+      lucide.createIcons();
+    }
+
+    function togglePurchaseDetails(id) {
+      const el = document.getElementById(`purchase-details-${id}`);
+      if (el) el.classList.toggle('hidden');
+    }
+
+    function reusePurchase(id) {
+      const purchase = purchasesHistory.find(p => p.id === id);
+      if (!purchase) return;
+
+      if (confirm(`Carregar os ${purchase.items.length} itens desta compra no seu carrinho atual?`)) {
+        purchase.items.forEach(item => {
+          addToCart(item.name, item.price, item.image);
+        });
+        toggleHistoryModal();
+      }
+    }
+
+    function deletePurchaseHistory(id) {
+      if (confirm("Remover esta compra do histórico acumulado?")) {
+        purchasesHistory = purchasesHistory.filter(p => p.id !== id);
+        savePurchases();
+        renderPurchasesList();
+      }
+    }
+
+    function renderHistoryList() {
+      const container = document.getElementById('tab-catalog-content');
+      container.innerHTML = '';
+
+      if (historyDatabase.length === 0) {
+        container.innerHTML = `<p class="text-slate-400 text-center py-4">Nenhum produto cadastrado no catálogo.</p>`;
+        return;
+      }
+
+      historyDatabase.forEach(prod => {
+        const item = document.createElement('div');
+        item.className = "flex justify-between items-center bg-slate-900/80 p-2 rounded-xl border border-slate-700/60 gap-2";
+        item.innerHTML = `
+          <div class="flex items-center gap-2 min-w-0">
+            <button onclick="openImageViewer('${escapeHtml(prod.name)}', '${escapeHtml(prod.image)}')" class="w-10 h-10 rounded-lg overflow-hidden border border-slate-700 flex-shrink-0">
+              <img src="${escapeHtml(prod.image)}" class="w-full h-full object-cover" onerror="this.src='${DEFAULT_PRODUCT_IMAGE}'">
+            </button>
+            <div class="min-w-0">
+              <p class="font-medium text-slate-200 truncate">${escapeHtml(prod.name)}</p>
+              <p class="text-[10px] text-emerald-400">R$ ${prod.price.toFixed(2).replace('.', ',')}</p>
+            </div>
+          </div>
+          <button onclick="addFromHistory('${prod.id}')" class="bg-indigo-60
+
+
+
+
+
+
+0/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 font-medium px-2.5 py-1.5 rounded-lg transition-all flex items-center gap-1">
+            <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+            <span>Adicionar</span>
+          </button>
+        `;
+        container.appendChild(item);
+      });
+
+      lucide.createIcons();
+    }
+
+    function addFromHistory(id) {
+      const prod = historyDatabase.find(p => p.id === id);
+      if (prod) {
+        addToCart(prod.name, prod.price, prod.image);
+      }
+    }
+
+    // --- MODAL DE RESUMO / FINALIZAÇÃO DA COMPRA ---
+    function toggleSummaryModal() {
+      const modal = document.getElementById('summary-modal');
+      modal.classList.toggle('hidden');
+
+      if (!modal.classList.contains('hidden')) {
+        renderSummary();
+      }
+    }
+
+    function renderSummary() {
+      const listContainer = document.getElementById('summary-list');
+      const totalItemsEl = document.getElementById('summary-total-items');
+      const totalPriceEl = document.getElementById('summary-total-price');
+
+      listContainer.innerHTML = '';
+
+      if (cart.length === 0) {
+        listContainer.innerHTML = `<p class="text-slate-400 text-center py-6">O carrinho está vazio.</p>`;
+        totalItemsEl.textContent = '0';
+        totalPriceEl.textContent = 'R$ 0,00';
+        return;
+      }
+
+      let grandTotal = 0;
+      let totalUnits = 0;
+
+      cart.forEach(item => {
+        const subtotal = item.price * item.quantity;
+        grandTotal += subtotal;
+        totalUnits += item.quantity;
+
+        const row = document.createElement('div');
+        row.className = "flex justify-between items-center bg-slate-900/60 p-2 rounded-xl border border-slate-700/60";
+        row.innerHTML = `
+          <div class="flex items-center gap-2 min-w-0">
+            <img src="${escapeHtml(item.image)}" class="w-8 h-8 rounded-lg object-cover border border-slate-700" onerror="this.src='${DEFAULT_PRODUCT_IMAGE}'">
+            <div class="min-w-0">
+              <p class="font-medium text-slate-200 truncate">${escapeHtml(item.name)}</p>
+              <p class="text-[10px] text-slate-400">${item.quantity}x R$ ${item.price.toFixed(2).replace('.', ',')}</p>
+            </div>
+          </div>
+          <span class="font-bold text-emerald-400 font-mono">R$ ${subtotal.toFixed(2).replace('.', ',')}</span>
+        `;
+        listContainer.appendChild(row);
+      });
+
+      totalItemsEl.textContent = totalUnits;
+      totalPriceEl.textContent = `R$ ${grandTotal.toFixed(2).replace('.', ',')}`;
+    }
+
+    function finishPurchase() {
+      if (cart.length === 0) {
+        alert("Adicione itens ao carrinho antes de finalizar a compra.");
+        return;
+      }
+
+      const total = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+
+      const newPurchase = {
+        id: Date.now().toString(),
+        timestamp: Date.now(),
+        total: total,
+        items: [...cart]
+      };
+
+      purchasesHistory.push(newPurchase);
+      savePurchases();
+
+      // Limpa o carrinho atual após salvar
+      cart = [];
+      saveCart();
+      renderCart();
+
+      toggleSummaryModal();
+      alert("Compra finalizada e salva no histórico com sucesso!");
+    }
+
+    // --- ACESSO PAGO VIA PIX ---
+    const ACCESS_KEY = 'excellington_paid_access_v1';
+    const ACCESS_ID_KEY = 'excellington_access_id_v1';
+    let paymentPollTimer = null;
+
+    function getAccessId() {
+      let id = localStorage.getItem(ACCESS_ID_KEY);
+      if (!id) { id = crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`; localStorage.setItem(ACCESS_ID_KEY, id); }
+      return id;
+    }
+    function hasAppAccess() { return localStorage.getItem(ACCESS_KEY) === '1'; }
+    function initializeAccessGate() {
+      const gate = document.getElementById('payment-gate');
+      if (hasAppAccess()) { gate.classList.add('hidden'); startCameraStream(); }
+      else { gate.classList.remove('hidden'); lucide.createIcons(); }
+    }
+    async function createPixPayment() {
+      const email = document.getElementById('payer-email').value.trim();
+      const btn = document.getElementById('create-pix-btn');
+      const errorEl = document.getElementById('payment-error');
+      errorEl.classList.add('hidden');
+      if (!email || !email.includes('@')) { errorEl.textContent = "Informe um e-mail válido."; errorEl.classList.remove('hidden'); return; }
+      btn.disabled = true; btn.innerHTML = '<span>Gerando Pix...</span>';
+      try {
+        const response = await fetch('/api/create-pix', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({accessId:getAccessId(),email}) });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'Não foi possível gerar o Pix.');
+        document.getElementById('payment-form-area').classList.add('hidden');
+        document.getElementById('pix-payment-area').classList.remove('hidden');
+        document.getElementById('pix-qr').src = `data:image/png;base64,${data.qr_code_base64}`;
+        document.getElementById('pix-copy-paste').value = data.qr_code;
+        pollPaymentStatus(data.payment_id);
+      } catch (err) { errorEl.textContent = err.message; errorEl.classList.remove('hidden'); btn.disabled=false; btn.innerHTML='<span>Pagar R$ 5,00 via Pix</span>'; }
+    }
+    async function pollPaymentStatus(paymentId) {
+      clearInterval(paymentPollTimer);
+      const statusEl = document.getElementById('payment-status');
+      paymentPollTimer = setInterval(async () => {
+        try {
+          const response = await fetch(`/api/payment-status/${encodeURIComponent(paymentId)}?accessId=${encodeURIComponent(getAccessId())}`);
+          const data = await response.json();
+          if (data.status === 'approved') {
+            clearInterval(paymentPollTimer); localStorage.setItem(ACCESS_KEY,'1');
+            statusEl.textContent='Pagamento confirmado! Liberando o aplicativo...'; statusEl.className='text-xs text-emerald-300 font-semibold';
+            setTimeout(()=>{document.getElementById('payment-gate').classList.add('hidden'); startCameraStream();},600);
+          } else if (['rejected','cancelled'].includes(data.status)) {
+            clearInterval(paymentPollTimer); statusEl.textContent='Pagamento não aprovado. Gere um novo Pix.'; statusEl.className='text-xs text-rose-300';
+          }
+        } catch (err) { console.warn('Consulta do pagamento:',err); }
+      },3000);
+    }
+    async function copyPixCode() {
+      const code=document.getElementById('pix-copy-paste').value;
+      try { await navigator.clipboard.writeText(code); document.getElementById('payment-status').textContent='Pix Copia e Cola copiado. Aguardando pagamento...'; }
+      catch { document.getElementById('pix-copy-paste').select(); document.execCommand('copy'); }
+    }
+
+    window.addEventListener('beforeunload', () => stopCameraStream());
+
+    // --- FUNÇÃO AUXILIAR DE SEGURANÇA (SANITIZAÇÃO HTML) ---
+    function escapeHtml(text) {
+      if (!text) return '';
+      return String(text)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+  </script>
+</body>
+</html>
+
+```
