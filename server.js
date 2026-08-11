@@ -31,7 +31,7 @@ app.get("/", (req, res) => {
 });
 
 // Criar cobrança Pix de R$ 5,00
-app.post("/api/create-payment", async (req, res) => {
+app.post("/api/create-pix", async (req, res) => {
   try {
     if (!paymentApi) {
       return res.status(500).json({
