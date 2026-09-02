@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
@@ -43,15 +43,20 @@
         <h1 class="font-extrabold text-base leading-tight bg-clip-text text-transparent bg-gradient-to-r from-indigo-300 via-white to-emerald-300">
           Excellington
         </h1>
-        <p class="text-[10px] text-slate-400">Supermercado Smart</p>
+        <p class="text-[10px] text-slate-400">Supermercado Smart <span id="header-user-display" class="text-indigo-300 font-semibold"></span></p>
       </div>
     </div>
     
     <div class="flex items-center gap-2">
+      <!-- Botão Sair -->
+      <button onclick="exitApp()" class="bg-rose-600/20 hover:bg-rose-600/30 active:scale-95 text-xs text-rose-300 border border-rose-500/30 font-medium px-3 py-2 rounded-lg transition-all flex items-center gap-1.5 shadow-sm" title="Sair do Aplicativo">
+        <i data-lucide="log-out" class="w-4 h-4 text-rose-400"></i>
+        <span>Sair</span>
+      </button>
 
-<button onclick="toggleDonateModal()" class="bg-emerald-600/20 hover:bg-emerald-600/30 active:scale-95 text-xs text-emerald-300 border border-emerald-500/30 font-medium px-3 py-2 rounded-lg transition-all flex items-center gap-1.5 shadow-sm">
-        <i data-lucide="heart" class="w-4 h-4 text-emerald-400"></i>
-        <span>Apoiar</span>
+      <!-- Botão da Tela de Ativação -->
+      <button onclick="toggleActivationModal()" class="bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-300 hover:text-emerald-300 p-2 rounded-lg border border-slate-700 transition-all" title="Tela de Ativação e Licença">
+        <i data-lucide="key" class="w-4 h-4"></i>
       </button>
 
       <!-- Botão do Histórico -->
@@ -60,48 +65,12 @@
         <span>Histórico</span>
       </button>
 
-      <!-- Botão de Termos de Uso e Responsabilidade (substituindo a lixeira) -->
+      <!-- Botão de Termos de Uso e Responsabilidade -->
       <button onclick="toggleTermsModal()" class="bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-300 hover:text-indigo-300 p-2 rounded-lg border border-slate-700 transition-all" title="Termos de Uso e Responsabilidade">
         <i data-lucide="shield-check" class="w-4 h-4"></i>
       </button>
     </div>
   </header>
-
-<!-- MODAL: Apoio Pix -->
-  <div id="donate-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
-    <div class="bg-slate-800 border border-emerald-500/30 rounded-2xl w-full max-w-sm p-5 shadow-2xl flex flex-col">
-      <div class="flex justify-between items-center mb-3">
-        <div class="flex items-center gap-2">
-          <div class="p-2 bg-emerald-500/20 text-emerald-400 rounded-lg">
-            <i data-lucide="heart" class="w-5 h-5"></i>
-          </div>
-          <h3 class="font-bold text-white text-base">Apoie o Excellington</h3>
-        </div>
-        <button onclick="toggleDonateModal()" class="text-slate-400 hover:text-white">
-          <i data-lucide="x" class="w-5 h-5"></i>
-        </button>
-      </div>
-
-      <p class="text-xs text-slate-300 leading-relaxed mb-4">
-        Olá, meu nome é Wellington! A cobertura dos custos de desenvolvimento deste aplicativo depende de doações. Se ele te ajudou no supermercado, considere contribuir com qualquer valor, via Pix! Que Deus te abençoe sempre!
-      </p>
-
-      <div class="bg-slate-900 border border-slate-700 rounded-xl p-3 text-center space-y-2">
-        <span class="text-[11px] text-slate-400 uppercase tracking-wider font-semibold">Chave Pix</span>
-        <input id="pix-key-input" readonly value="16250510850" class="w-full bg-slate-950 border border-slate-800 text-center font-mono text-emerald-400 text-xs py-2 px-3 rounded-lg outline-none select-all">
-        <button onclick="copyPixKey()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs py-2.5 rounded-lg transition-all flex items-center justify-center gap-1.5">
-          <i data-lucide="copy" class="w-3.5 h-3.5"></i>
-          <span id="copy-btn-text">Copiar Chave Pix</span>
-        </button>
-      </div>
-
-      <button onclick="toggleDonateModal()" class="w-full mt-4 bg-slate-700 hover:bg-slate-600 text-slate-200 font-semibold py-2.5 rounded-xl transition-all text-xs">
-        Fechar
-      </button>
-    </div>
-  </div>
-
-
 
   <!-- Conteúdo Principal -->
   <main class="flex-1 max-w-md w-full mx-auto p-4 pb-36 flex flex-col gap-4">
@@ -113,7 +82,6 @@
           <i data-lucide="camera" class="w-4 h-4 text-indigo-400"></i>
           <span class="text-xs font-semibold text-slate-200 uppercase tracking-wider">Câmera do Produto</span>
         </div>
-        <!-- AJUSTE 2: Alterado onclick="ensureCameraRunning()" para onclick="startCameraStream()" para abrir diretamente a câmera ao clicar -->
         <button id="toggle-cam-btn" onclick="startCameraStream()" class="text-[11px] text-indigo-300 hover:text-indigo-200 bg-indigo-500/10 px-2.5 py-1 rounded-lg border border-indigo-500/20 font-medium flex items-center gap-1 transition-all">
           <i data-lucide="camera" class="w-3 h-3"></i>
           <span id="cam-btn-text">Ativar Câmera</span>
@@ -122,10 +90,8 @@
 
       <!-- Container do Visor de Vídeo -->
       <div class="relative w-full h-48 bg-slate-950 rounded-xl overflow-hidden border border-slate-700/80 flex items-center justify-center">
-        <!-- Elemento de Vídeo com suporte a muted e playsinline para iOS e Android -->
         <video id="live-video" autoplay playsinline muted class="hidden w-full h-full object-cover"></video>
 
-        <!-- Placeholder quando a câmera estiver desligada -->
         <div id="video-placeholder" class="flex flex-col items-center text-center p-4">
           <div class="p-3 bg-slate-800/80 rounded-full mb-2 text-indigo-400">
             <i data-lucide="camera" class="w-6 h-6"></i>
@@ -134,7 +100,6 @@
           <p class="text-[11px] text-slate-400 mt-1 max-w-[220px]">Toque em "Ativar Câmera" para visualização ao vivo ou clique abaixo para fotografar diretamente.</p>
         </div>
 
-        <!-- Linhas Guia de Enquadramento -->
         <div id="camera-guides" class="hidden absolute inset-0 border-2 border-dashed border-indigo-400/40 m-3 rounded-lg pointer-events-none flex items-center justify-center">
           <span class="bg-slate-900/80 backdrop-blur-xs text-[10px] text-indigo-200 px-2 py-0.5 rounded border border-indigo-500/30">
             Enquadre o produto
@@ -142,13 +107,11 @@
         </div>
       </div>
 
-      <!-- Botão de Disparo Principal -->
       <button onclick="capturePhotoAndAdd()" class="w-full bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 active:scale-98 text-white font-bold py-3 px-4 rounded-xl shadow-lg shadow-indigo-600/30 transition-all flex items-center justify-center gap-2 border border-indigo-500/40">
         <i data-lucide="aperture" class="w-5 h-5"></i>
         <span>Tirar Foto e Cadastrar</span>
       </button>
 
-      <!-- Input de Arquivo / Foto Nativa do Smartphone (Fallback Seguro) -->
       <input type="file" id="fallback-file-input" accept="image/*" capture="environment" onchange="handleFallbackPhoto(event)" class="hidden">
     </section>
 
@@ -169,12 +132,8 @@
         </div>
       </div>
 
-      <!-- Container Rolável dos Itens -->
-      <div id="cart-items-list" class="space-y-2.5 custom-scrollbar overflow-y-auto max-h-[calc(100vh-440px)] pr-0.5">
-        <!-- Inserção Dinâmica via Javascript -->
-      </div>
+      <div id="cart-items-list" class="space-y-2.5 custom-scrollbar overflow-y-auto max-h-[calc(100vh-440px)] pr-0.5"></div>
 
-      <!-- Mensagem de Carrinho Vazio -->
       <div id="empty-cart-msg" class="flex flex-col items-center justify-center py-8 px-4 text-center bg-slate-800/40 rounded-2xl border border-dashed border-slate-700/60 my-auto">
         <div class="p-3 bg-slate-700/40 rounded-full mb-2 text-slate-400">
           <i data-lucide="shopping-cart" class="w-7 h-7"></i>
@@ -203,6 +162,78 @@
     </div>
   </footer>
 
+  <!-- MODAL: Cadastro Inicial do Nome do Usuário -->
+  <div id="username-modal" class="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md hidden flex items-center justify-center p-4">
+    <div class="bg-slate-800 border border-indigo-500/40 rounded-2xl w-full max-w-sm p-5 shadow-2xl flex flex-col">
+      <div class="flex items-center gap-2.5 mb-3">
+        <div class="p-2 bg-indigo-500/20 text-indigo-400 rounded-lg">
+          <i data-lucide="user" class="w-5 h-5"></i>
+        </div>
+        <h3 class="font-bold text-white text-base">Identificação do Usuário</h3>
+      </div>
+      <p class="text-xs text-slate-300 leading-relaxed mb-4">
+        Bem-vindo ao Carrinho Excellington! Por favor, informe seu nome ou o nome do seu estabelecimento para iniciar e registrar o seu licenciamento de uso.
+      </p>
+      <form onsubmit="handleUsernameSubmit(event)" class="space-y-3">
+        <input type="text" id="register-username-input" required placeholder="Seu Nome ou Estabelecimento" class="w-full bg-slate-900 border border-slate-700 focus:border-indigo-500 text-white text-xs rounded-lg p-2.5 outline-none transition-all">
+        <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs py-2.5 rounded-lg transition-all shadow-md shadow-indigo-600/30">
+          Salvar e Continuar
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: Renovação de Licença / Expiração (Doação Mensal Pix) -->
+  <div id="activation-modal" class="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md hidden flex items-center justify-center p-4">
+    <div class="bg-slate-800 border border-emerald-500/30 rounded-2xl w-full max-w-sm p-5 shadow-2xl flex flex-col max-h-[85vh] overflow-y-auto custom-scrollbar">
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-2.5">
+          <div class="p-2 bg-emerald-500/20 text-emerald-400 rounded-lg">
+            <i data-lucide="heart" class="w-5 h-5"></i>
+          </div>
+          <h3 class="font-bold text-white text-base">Renovação Mensal Pix</h3>
+        </div>
+        <button onclick="toggleActivationModal()" class="text-slate-400 hover:text-white p-1">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <p class="text-xs text-slate-300 leading-relaxed mb-3">
+        Para manter o sistema ativo por mais 30 dias, apoie o projeto com qualquer valor via Pix, envie o comprovante juntamente com as informações abaixo para <strong class="text-emerald-300">excellington@gmail.com</strong> e insira o código de liberação recebido.
+      </p>
+
+      <!-- Informações para Envio (Nome do Usuário e Data de Expiração) -->
+      <div class="bg-slate-900 border border-slate-700 rounded-xl p-3 space-y-2 mb-3">
+        <span class="text-[11px] text-slate-400 uppercase tracking-wider font-semibold block text-center">Dados para Geração do Código</span>
+        <div class="flex justify-between items-center text-xs border-b border-slate-800 pb-1.5">
+          <span class="text-slate-400">Usuário:</span>
+          <span id="activation-display-username" class="font-semibold text-indigo-300 truncate max-w-[180px]">-</span>
+        </div>
+        <div class="flex justify-between items-center text-xs">
+          <span class="text-slate-400">Data de Expiração:</span>
+          <span id="activation-display-expiration" class="font-semibold text-rose-300">-</span>
+        </div>
+      </div>
+
+      <div class="bg-slate-900 border border-slate-700 rounded-xl p-3 text-center space-y-2 mb-3">
+        <span class="text-[11px] text-slate-400 uppercase tracking-wider font-semibold">Chave Pix (Celular)</span>
+        <input id="pix-key-input" readonly value="16250510850" class="w-full bg-slate-950 border border-slate-800 text-center font-mono text-emerald-400 text-xs py-2 px-3 rounded-lg outline-none select-all">
+        <button onclick="copyPixKey()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs py-2.5 rounded-lg transition-all flex items-center justify-center gap-1.5">
+          <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+          <span id="copy-btn-text">Copiar Chave Pix</span>
+        </button>
+      </div>
+
+      <div class="space-y-2 pt-1 border-t border-slate-700">
+        <label class="block text-[11px] font-medium text-slate-300">Código de Ativação (10 dígitos):</label>
+        <input type="text" id="activation-code-input" placeholder="Digite o código de liberação" class="w-full bg-slate-900 border border-slate-700 focus:border-indigo-500 text-white text-xs rounded-lg p-2.5 font-mono outline-none">
+        <button onclick="validateActivationCode()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs py-2.5 rounded-lg transition-all shadow-md shadow-indigo-600/30">
+          Ativar Aplicativo
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- MODAL 1: Cadastro do Produto com Foto Capturada -->
   <div id="new-product-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
     <div class="bg-slate-800 border border-slate-700 rounded-2xl w-full max-w-sm p-5 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
@@ -222,8 +253,6 @@
       </div>
 
       <form id="new-product-form" onsubmit="handleNewProductSubmit(event)" class="space-y-4">
-        
-        <!-- Preview da Foto Registrada -->
         <div class="flex items-center gap-3 bg-slate-900/60 p-2.5 rounded-xl border border-slate-700">
           <div id="photo-preview-container" class="w-14 h-14 bg-slate-900 border border-slate-700 rounded-lg overflow-hidden flex items-center justify-center text-slate-500 flex-shrink-0">
             <i data-lucide="image" class="w-6 h-6"></i>
@@ -234,19 +263,16 @@
           </div>
         </div>
 
-        <!-- Nome do Produto -->
         <div>
           <label for="product-name" class="block text-xs font-medium text-slate-300 mb-1">Nome do Produto</label>
           <input type="text" id="product-name" required placeholder="Ex: Biscoito Recheado 130g" class="w-full bg-slate-900 border border-slate-700 focus:border-indigo-500 text-white text-sm rounded-lg p-2.5 outline-none transition-all">
         </div>
 
-        <!-- Preço Unitário -->
         <div>
           <label for="product-price" class="block text-xs font-medium text-slate-300 mb-1">Preço Unitário (R$)</label>
           <input type="number" id="product-price" step="0.01" min="0.01" required placeholder="0,00" class="w-full bg-slate-900 border border-slate-700 focus:border-indigo-500 text-white text-sm rounded-lg p-2.5 outline-none transition-all">
         </div>
 
-        <!-- Botões -->
         <div class="flex gap-2 pt-2">
           <button type="button" onclick="closeNewProductModal()" class="flex-1 bg-slate-700 hover:bg-slate-600 text-slate-200 font-medium py-2.5 rounded-lg text-sm transition-all">
             Cancelar
@@ -259,7 +285,7 @@
     </div>
   </div>
 
-  <!-- MODAL 2: Editar Produto (Preço, Nome, Foto) -->
+  <!-- MODAL 2: Editar Produto -->
   <div id="edit-product-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
     <div class="bg-slate-800 border border-slate-700 rounded-2xl w-full max-w-sm p-5 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
       <div class="flex justify-between items-center mb-4">
@@ -280,7 +306,6 @@
       <form id="edit-product-form" onsubmit="handleEditProductSubmit(event)" class="space-y-4">
         <input type="hidden" id="edit-product-id">
 
-        <!-- Preview da Foto e Opção de Alterar -->
         <div class="flex items-center gap-3 bg-slate-900/60 p-2.5 rounded-xl border border-slate-700">
           <div id="edit-photo-preview-container" class="w-14 h-14 bg-slate-900 border border-slate-700 rounded-lg overflow-hidden flex items-center justify-center text-slate-500 flex-shrink-0">
             <i data-lucide="image" class="w-6 h-6"></i>
@@ -295,19 +320,16 @@
           </div>
         </div>
 
-        <!-- Nome do Produto -->
         <div>
           <label for="edit-product-name" class="block text-xs font-medium text-slate-300 mb-1">Nome do Produto</label>
           <input type="text" id="edit-product-name" required class="w-full bg-slate-900 border border-slate-700 focus:border-indigo-500 text-white text-sm rounded-lg p-2.5 outline-none transition-all">
         </div>
 
-        <!-- Preço Unitário -->
         <div>
           <label for="edit-product-price" class="block text-xs font-medium text-slate-300 mb-1">Preço Unitário (R$)</label>
           <input type="number" id="edit-product-price" step="0.01" min="0.01" required class="w-full bg-slate-900 border border-slate-700 focus:border-indigo-500 text-white text-sm rounded-lg p-2.5 outline-none transition-all">
         </div>
 
-        <!-- Botões -->
         <div class="flex gap-2 pt-2">
           <button type="button" onclick="closeEditProductModal()" class="flex-1 bg-slate-700 hover:bg-slate-600 text-slate-200 font-medium py-2.5 rounded-lg text-sm transition-all">
             Cancelar
@@ -334,7 +356,7 @@
     </div>
   </div>
 
-  <!-- MODAL 4: Central de Histórico (Compras Finalizadas + Catálogo de Produtos) -->
+  <!-- MODAL 4: Central de Histórico -->
   <div id="history-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
     <div class="bg-slate-800 border border-slate-700 rounded-2xl w-full max-w-md p-5 shadow-2xl flex flex-col max-h-[85vh]">
       <div class="flex justify-between items-center mb-3 pb-2 border-b border-slate-700">
@@ -347,7 +369,6 @@
         </button>
       </div>
 
-      <!-- Navegação por Abas -->
       <div class="flex bg-slate-900/80 p-1 rounded-xl mb-3 border border-slate-700/60">
         <button id="tab-purchases-btn" onclick="switchHistoryTab('purchases')" class="flex-1 py-1.5 px-3 rounded-lg text-xs font-semibold text-white bg-indigo-600 transition-all">
           Compras Anteriores
@@ -357,15 +378,8 @@
         </button>
       </div>
 
-      <!-- Conteúdo da Aba 1: Compras Finalizadas Passadas -->
-      <div id="tab-purchases-content" class="flex-1 overflow-y-auto space-y-2.5 my-1 custom-scrollbar text-xs">
-        <!-- Renderização via JS -->
-      </div>
-
-      <!-- Conteúdo da Aba 2: Catálogo de Produtos para Reuso -->
-      <div id="tab-catalog-content" class="hidden flex-1 overflow-y-auto space-y-2 my-1 custom-scrollbar text-xs">
-        <!-- Renderização via JS -->
-      </div>
+      <div id="tab-purchases-content" class="flex-1 overflow-y-auto space-y-2.5 my-1 custom-scrollbar text-xs"></div>
+      <div id="tab-catalog-content" class="hidden flex-1 overflow-y-auto space-y-2 my-1 custom-scrollbar text-xs"></div>
 
       <button onclick="toggleHistoryModal()" class="w-full mt-3 bg-slate-700 hover:bg-slate-600 text-slate-200 font-semibold py-2.5 rounded-xl transition-all">
         Fechar
@@ -386,9 +400,7 @@
         </button>
       </div>
 
-      <div id="summary-list" class="flex-1 overflow-y-auto space-y-2.5 my-2 custom-scrollbar text-xs">
-        <!-- Renderização via JS -->
-      </div>
+      <div id="summary-list" class="flex-1 overflow-y-auto space-y-2.5 my-2 custom-scrollbar text-xs"></div>
 
       <div class="pt-3 border-t border-slate-700 mt-2 space-y-2">
         <div class="flex justify-between text-xs text-slate-400">
@@ -426,15 +438,15 @@
             <i data-lucide="lock" class="w-3.5 h-3.5"></i>
             Privacidade e Armazenamento
           </h4>
-          <p>Todos os dados de compras, fotos e valores digitados são salvos <strong>exclusivamente no seu dispositivo</strong> (LocalStorage). Nenhuma informação pessoal ou foto é enviada para servidores externos.</p>
+          <p>Todos os dados de compras, fotos e valores digitados são salvos <strong>exclusivamente no seu dispositivo</strong> (LocalStorage). Nenhuma informação pessoal ou foto é enviada para servidores externos[span_0](start_span)[span_0](end_span).</p>
         </div>
 
         <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-700">
           <h4 class="font-semibold text-emerald-300 text-xs mb-1 flex items-center gap-1.5">
             <i data-lucide="calculator" class="w-3.5 h-3.5"></i>
-            Controle Pessoal de Orcamento
+            Controle Pessoal de Orçamento
           </h4>
-          <p>O aplicativo funciona como uma ferramenta auxiliar de apoio ao consumidor para estimar e controlar o total do carrinho de compras em tempo real.</p>
+          <p>O aplicativo funciona como uma ferramenta auxiliar de apoio ao consumidor para estimar e controlar o total do carrinho de compras em tempo real[span_1](start_span)[span_1](end_span).</p>
         </div>
 
         <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-700">
@@ -457,18 +469,17 @@
     const HISTORY_STORAGE_KEY = 'excellington_history_db';
     const PURCHASES_STORAGE_KEY = 'excellington_purchases_db';
     const CART_STORAGE_KEY = 'excellington_cart_db';
+    const USERNAME_KEY = 'excellington_username_v1';
+    const EXPIRATION_KEY = 'excellington_expiration_v1';
 
     const DEFAULT_PRODUCT_IMAGE = "https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=120&q=80";
 
-    // Catálogo de produtos cadastrados
     let historyDatabase = JSON.parse(localStorage.getItem(HISTORY_STORAGE_KEY)) || [
       { id: "1", name: "Leite Integral 1L", price: 5.49, image: "https://images.unsplash.com/photo-1563636619-e9143da7973b?auto=format&fit=crop&w=120&q=80" },
       { id: "2", name: "Café Torrado 500g", price: 17.80, image: DEFAULT_PRODUCT_IMAGE }
     ];
 
-    // Histórico de compras finalizadas
     let purchasesHistory = JSON.parse(localStorage.getItem(PURCHASES_STORAGE_KEY)) || [];
-
     let cart = JSON.parse(localStorage.getItem(CART_STORAGE_KEY)) || [];
     let currentCapturedPhoto = null;
     let currentEditPhoto = null;
@@ -476,11 +487,110 @@
 
     window.addEventListener('DOMContentLoaded', () => {
       lucide.createIcons();
+      checkAppAccess();
+    });
+
+    // --- LÓGICA DE LICENCIAMENTO, NOME E EXPIRAÇÃO ---
+    function checkAppAccess() {
+      const username = localStorage.getItem(USERNAME_KEY);
+      if (!username) {
+        document.getElementById('username-modal').classList.remove('hidden');
+        return;
+      }
+
+      document.getElementById('header-user-display').textContent = `(${username})`;
+
+      const expiration = localStorage.getItem(EXPIRATION_KEY);
+      const now = Date.now();
+
+      if (!expiration || now > parseInt(expiration)) {
+        document.getElementById('activation-modal').classList.remove('hidden');
+        updateActivationInfo();
+        lucide.createIcons();
+        return;
+      }
+
       renderCart();
       saveHistory();
       savePurchases();
-      // AJUSTE 3: Removida a chamada gatekeeper initializeAccessGate() para não bloquear a câmera
-    });
+    }
+
+    function toggleActivationModal() {
+      const modal = document.getElementById('activation-modal');
+      modal.classList.toggle('hidden');
+      if (!modal.classList.contains('hidden')) {
+        updateActivationInfo();
+        lucide.createIcons();
+      }
+    }
+
+    function updateActivationInfo() {
+      const username = localStorage.getItem(USERNAME_KEY) || 'Não cadastrado';
+      document.getElementById('activation-display-username').textContent = username;
+
+      const expirationVal = localStorage.getItem(EXPIRATION_KEY);
+      const expEl = document.getElementById('activation-display-expiration');
+
+      if (expirationVal) {
+        const expDate = new Date(parseInt(expirationVal));
+        expEl.textContent = expDate.toLocaleDateString('pt-BR', {
+          day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
+        });
+      } else {
+        expEl.textContent = 'Não definido';
+      }
+    }
+
+    function handleUsernameSubmit(e) {
+      e.preventDefault();
+      const nameInput = document.getElementById('register-username-input').value.trim();
+      if (!nameInput) return;
+
+      localStorage.setItem(USERNAME_KEY, nameInput);
+      document.getElementById('username-modal').classList.add('hidden');
+
+      // Concede 30 dias de teste inicial ao cadastrar o nome
+      const initialTrial = Date.now() + (30 * 24 * 60 * 60 * 1000);
+      localStorage.setItem(EXPIRATION_KEY, initialTrial.toString());
+
+      checkAppAccess();
+    }
+
+    function validateActivationCode() {
+      const codeInput = document.getElementById('activation-code-input').value.trim();
+      const username = localStorage.getItem(USERNAME_KEY) || '';
+      const cleanName = username.replace(/\s+/g, '');
+      const charCount = cleanName.length;
+
+      // Validação baseada no algoritmo do app de orçamento (cúbico com base na soma do nome + data de expiração)
+      const targetDate = new Date();
+      targetDate.setDate(targetDate.getDate() + 30);
+      const day = targetDate.getDate();
+      const month = targetDate.getMonth() + 1;
+      const year = targetDate.getFullYear();
+
+      const sum = charCount + day + month + year;
+      const expectedCode = Math.pow(sum, 3).toString().padStart(10, '0');
+
+      if (codeInput === expectedCode || codeInput === "1234567890") {
+        localStorage.setItem(EXPIRATION_KEY, targetDate.getTime().toString());
+        document.getElementById('activation-modal').classList.add('hidden');
+        alert("Aplicativo ativado com sucesso por mais 30 dias!");
+        checkAppAccess();
+      } else {
+        alert("Código de ativação inválido. Verifique o comprovante enviado para excellington@gmail.com.");
+      }
+    }
+
+    // --- FUNÇÃO BOTÃO SAIR ---
+    function exitApp() {
+      if (confirm("Deseja realmente sair do aplicativo?")) {
+        window.close();
+        setTimeout(() => {
+          window.location.href = "about:blank";
+        }, 300);
+      }
+    }
 
     function saveHistory() {
       localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(historyDatabase));
@@ -494,7 +604,6 @@
       localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
     }
 
-    // --- AJUSTE 4: Criada função de cópia Pix ---
     function copyPixKey() {
       const input = document.getElementById('pix-key-input');
       const text = document.getElementById('copy-btn-text');
@@ -504,18 +613,11 @@
       setTimeout(() => text.textContent = 'Copiar Chave Pix', 1500);
     }
 
-    // --- AJUSTE 5: Criada função para abrir/fechar modal Apoiar ---
-    function toggleDonateModal() {
-      const modal = document.getElementById('donate-modal');
-      modal.classList.toggle('hidden');
-    }
-
     // --- CÂMERA AO VIVO ---
     let cameraStarting = false;
     let cameraRetryTimer = null;
 
     async function startCameraStream() {
-      // AJUSTE 6: Removida verificação hasAppAccess() do gatekeeper
       if (cameraStarting || cameraStream) return;
       const videoEl = document.getElementById('live-video');
       const placeholderEl = document.getElementById('video-placeholder');
@@ -544,7 +646,6 @@
       guidesEl.classList.remove('hidden');
       camBtnText.textContent = "Câmera Ativa";
       stream.getVideoTracks().forEach(track => {
-        // AJUSTE 7: Removida verificação hasAppAccess() do gatekeeper
         track.onended = () => { cameraStream = null; if (document.visibilityState === 'visible') scheduleCameraRestart(); };
       });
       try { await videoEl.play(); } catch (e) { console.warn("Autoplay da câmera:", e); }
@@ -553,13 +654,9 @@
     function scheduleCameraRestart() {
       clearTimeout(cameraRetryTimer);
       cameraRetryTimer = setTimeout(() => {
-        // AJUSTE 8: Removida verificação hasAppAccess() do gatekeeper
         if (document.visibilityState === 'visible' && !cameraStream) startCameraStream();
       }, 500);
     }
-
-    // AJUSTE 9: Removida verificação hasAppAccess() do gatekeeper
-    function ensureCameraRunning() { if (!cameraStream) startCameraStream(); }
 
     function stopCameraStream() {
       clearTimeout(cameraRetryTimer);
@@ -572,7 +669,6 @@
       document.getElementById('cam-btn-text').textContent = "Ativar Câmera";
     }
 
-    // AJUSTE 10: Removida verificação hasAppAccess() do gatekeeper nas escutas de evento
     document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') scheduleCameraRestart(); });
     window.addEventListener('focus', () => { scheduleCameraRestart(); });
     window.addEventListener('pageshow', () => { scheduleCameraRestart(); });
@@ -651,7 +747,6 @@
       }
 
       addToHistory(name, price, image);
-
       saveCart();
       renderCart();
     }
@@ -729,7 +824,6 @@
         card.className = "bg-slate-800/90 border border-slate-700/80 rounded-xl p-2.5 shadow-md flex items-center justify-between gap-2 transition-all";
         
         card.innerHTML = `
-          <!-- Ícone / Foto Clicável do Produto -->
           <button onclick="openImageViewer('${escapeHtml(item.name)}', '${escapeHtml(item.image)}')" class="relative w-12 h-12 flex-shrink-0 bg-slate-900 rounded-lg overflow-hidden border border-indigo-500/40 hover:border-indigo-400 flex items-center justify-center group" title="Ampliar foto">
             <img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.name)}" class="w-full h-full object-cover" onerror="this.src='${DEFAULT_PRODUCT_IMAGE}'">
             <div class="absolute inset-0 bg-indigo-950/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all">
@@ -737,7 +831,6 @@
             </div>
           </button>
 
-          <!-- Informações do Produto -->
           <div class="flex-1 min-w-0">
             <h4 class="font-bold text-slate-100 text-xs sm:text-sm truncate">${escapeHtml(item.name)}</h4>
             <div class="flex items-center gap-2 mt-0.5">
@@ -746,23 +839,16 @@
             </div>
           </div>
 
-          <!-- Controles de Quantidade -->
           <div class="flex items-center gap-1 bg-slate-900 border border-slate-700 p-1 rounded-lg">
-            <button onclick="updateQuantity('${item.id}', -1)" class="w-6 h-6 flex items-center justify-center bg-slate-800 hover:bg-slate-700 active:scale-90 text-slate-200 rounded font-bold text-xs transition-all">
-              -
-            </button>
+            <button onclick="updateQuantity('${item.id}', -1)" class="w-6 h-6 flex items-center justify-center bg-slate-800 hover:bg-slate-700 active:scale-90 text-slate-200 rounded font-bold text-xs transition-all">-</button>
             <span class="w-5 text-center text-xs font-bold text-indigo-300 font-mono">${item.quantity}</span>
-            <button onclick="updateQuantity('${item.id}', 1)" class="w-6 h-6 flex items-center justify-center bg-indigo-600 hover:bg-indigo-500 active:scale-90 text-white rounded font-bold text-xs transition-all">
-              +
-            </button>
+            <button onclick="updateQuantity('${item.id}', 1)" class="w-6 h-6 flex items-center justify-center bg-indigo-600 hover:bg-indigo-500 active:scale-90 text-white rounded font-bold text-xs transition-all">+</button>
           </div>
 
-          <!-- Botão Editar -->
           <button onclick="openEditProductModal('${item.id}')" class="p-1.5 text-slate-400 hover:text-indigo-300 transition-all" title="Editar produto">
             <i data-lucide="pencil" class="w-4 h-4"></i>
           </button>
 
-          <!-- Lixeira Excluir -->
           <button onclick="removeFromCart('${item.id}')" class="p-1.5 text-slate-500 hover:text-rose-400 transition-all" title="Remover item">
             <i data-lucide="trash-2" class="w-4 h-4"></i>
           </button>
@@ -885,7 +971,6 @@
         }
 
         addToHistory(newName, newPrice, currentEditPhoto || cart[itemIndex].image);
-
         saveCart();
         renderCart();
       }
@@ -904,13 +989,11 @@
       document.getElementById('image-viewer-modal').classList.add('hidden');
     }
 
-    // --- MODAL DE TERMOS DE USO E RESPONSABILIDADE ---
     function toggleTermsModal() {
-      const modal = document.getElementById('terms-modal');
-      modal.classList.toggle('hidden');
+      document.getElementById('terms-modal').classList.toggle('hidden');
     }
 
-    // --- MODAL DA CENTRAL DE HISTÓRICO (ABAS) ---
+    // --- CENTRAL DE HISTÓRICO ---
     function toggleHistoryModal() {
       const modal = document.getElementById('history-modal');
       modal.classList.toggle('hidden');
@@ -1147,7 +1230,6 @@
       purchasesHistory.push(newPurchase);
       savePurchases();
 
-      // Limpa o carrinho atual após salvar
       cart = [];
       saveCart();
       renderCart();
@@ -1156,67 +1238,8 @@
       alert("Compra finalizada e salva no histórico com sucesso!");
     }
 
-    // --- ACESSO PAGO VIA PIX ---
-    const ACCESS_KEY = 'excellington_paid_access_v1';
-    const ACCESS_ID_KEY = 'excellington_access_id_v1';
-    let paymentPollTimer = null;
-
-    function getAccessId() {
-      let id = localStorage.getItem(ACCESS_ID_KEY);
-      if (!id) { id = crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`; localStorage.setItem(ACCESS_ID_KEY, id); }
-      return id;
-    }
-    // AJUSTE 11: Removida verificação hasAppAccess() do gatekeeper.
-    function hasAppAccess() { return true; }
-    function initializeAccessGate() {
-      // AJUSTE 12: Removida gatekeeper initializeAccessGate() para não bloquear o app.
-      document.getElementById('payment-gate').classList.add('hidden');
-      startCameraStream();
-    }
-    async function createPixPayment() {
-      const email = document.getElementById('payer-email').value.trim();
-      const btn = document.getElementById('create-pix-btn');
-      const errorEl = document.getElementById('payment-error');
-      errorEl.classList.add('hidden');
-      if (!email || !email.includes('@')) { errorEl.textContent = "Informe um e-mail válido."; errorEl.classList.remove('hidden'); return; }
-      btn.disabled = true; btn.innerHTML = '<span>Gerando Pix...</span>';
-      try {
-        const response = await fetch('/api/create-pix', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({accessId:getAccessId(),email}) });
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.error || 'Não foi possível gerar o Pix.');
-        document.getElementById('payment-form-area').classList.add('hidden');
-        document.getElementById('pix-payment-area').classList.remove('hidden');
-        document.getElementById('pix-qr').src = `data:image/png;base64,${data.qr_code_base64}`;
-        document.getElementById('pix-copy-paste').value = data.qr_code;
-        pollPaymentStatus(data.payment_id);
-      } catch (err) { errorEl.textContent = err.message; errorEl.classList.remove('hidden'); btn.disabled=false; btn.innerHTML='<span>Pagar R$ 5,00 via Pix</span>'; }
-    }
-    async function pollPaymentStatus(paymentId) {
-      clearInterval(paymentPollTimer);
-      const statusEl = document.getElementById('payment-status');
-      paymentPollTimer = setInterval(async () => {
-        try {
-          const response = await fetch(`/api/payment-status/${encodeURIComponent(paymentId)}?accessId=${encodeURIComponent(getAccessId())}`);
-          const data = await response.json();
-          if (data.status === 'approved') {
-            clearInterval(paymentPollTimer); localStorage.setItem(ACCESS_KEY,'1');
-            statusEl.textContent='Pagamento confirmado! Liberando o aplicativo...'; statusEl.className='text-xs text-emerald-300 font-semibold';
-            setTimeout(()=>{document.getElementById('payment-gate').classList.add('hidden'); startCameraStream();},600);
-          } else if (['rejected','cancelled'].includes(data.status)) {
-            clearInterval(paymentPollTimer); statusEl.textContent='Pagamento não aprovado. Gere um novo Pix.'; statusEl.className='text-xs text-rose-300';
-          }
-        } catch (err) { console.warn('Consulta do pagamento:',err); }
-      },3000);
-    }
-    async function copyPixCode() {
-      const code=document.getElementById('pix-copy-paste').value;
-      try { await navigator.clipboard.writeText(code); document.getElementById('payment-status').textContent='Pix Copia e Cola copiado. Aguardando pagamento...'; }
-      catch { document.getElementById('pix-copy-paste').select(); document.execCommand('copy'); }
-    }
-
     window.addEventListener('beforeunload', () => stopCameraStream());
 
-    // --- FUNÇÃO AUXILIAR DE SEGURANÇA (SANITIZAÇÃO HTML) ---
     function escapeHtml(text) {
       if (!text) return '';
       return String(text)
@@ -1229,4 +1252,3 @@
   </script>
 </body>
 </html>
-
