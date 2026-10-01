@@ -1206,34 +1206,106 @@
       totalPriceEl.textContent = `R$ ${grandTotal.toFixed(2).replace('.', ',')}`;
     }
 
-    function finishPurchase() {
-      if (cart.length === 0) {
-        alert("Adicione itens ao carrinho antes de finalizar a compra.");
-        return;
-      }
 
-      const total = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+function finishPurchase() {
+  if (cart.length === 0) {
+    alert("Adicione itens ao carrinho antes de finalizar a compra.");
+    return;
+  }
 
-      const newPurchase = {
-        id: Date.now().toString(),
-        timestamp: Date.now(),
-        total: total,
-        items: [...cart]
+  const button = document.querySelector(
+    '#summary-modal button[onclick="finishPurchase()"]'
+  );
+
+  if (button) button.disabled = true;
+
+  try {
+    const timestamp = Date.now();
+    const total = cart.reduce(
+      (acc, item) => acc + (Number(item.price) * Number(item.quantity)),
+      0
+    );
+
+    // Cria uma cópia independente dos itens do carrinho
+    const newPurchase = {
+      id: timestamp.toString(),
+      timestamp: timestamp,
+      total: total,
+      items: cart.map(item => ({ ...item }))
+    };
+
+    // Prepara o histórico sem modificar os dados atuais
+    const updatedHistory = [...purchasesHistory, newPurchase];
+
+    // Tenta salvar o histórico com as imagens originais
+    try {
+      localStorage.setItem(
+        PURCHASES_STORAGE_KEY,
+        JSON.stringify(updatedHistory)
+      );
+    } catch (storageError) {
+      // Se faltar espaço, reduz o tamanho removendo fotos
+      console.warn("Tentando salvar a compra sem as fotos.", storageError);
+
+      const compactPurchase = {
+        ...newPurchase,
+        items: newPurchase.items.map(item => ({
+          ...item,
+          image: DEFAULT_PRODUCT_IMAGE
+        }))
       };
 
-      purchasesHistory.push(newPurchase);
-      savePurchases();
+      updatedHistory[updatedHistory.length - 1] = compactPurchase;
 
-      cart = [];
-      saveCart();
-      renderCart();
-
-      toggleSummaryModal();
-      alert("Compra finalizada e salva no histórico com sucesso!");
+      // Segunda tentativa com dados mais leves
+      localStorage.setItem(
+        PURCHASES_STORAGE_KEY,
+        JSON.stringify(updatedHistory)
+      );
     }
 
-    window.addEventListener('beforeunload', () => stopCameraStream());
+    // Limpa o carrinho persistido antes de atualizar a tela
+    try {
+      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify([]));
+    } catch (cartError) {
+      // Tenta reverter o histórico para evitar duplicidade
+      try {
+        localStorage.setItem(
+          PURCHASES_STORAGE_KEY,
+          JSON.stringify(purchasesHistory)
+        );
+      } catch (rollbackError) {
+        console.error("Falha ao reverter o histórico:", rollbackError);
+      }
+      throw cartError;
+    }
 
+    // Atualiza os dados em memória após o salvamento
+    purchasesHistory = updatedHistory;
+    cart = [];
+
+    renderCart();
+    renderSummary();
+
+    document.getElementById('summary-modal').classList.add('hidden');
+
+    alert("Compra finalizada e salva no histórico com sucesso!");
+
+  } catch (error) {
+    console.error("Erro ao finalizar a compra:", error);
+
+    alert(
+      "Não foi possível salvar a compra no dispositivo. " +
+      "Verifique o espaço disponível no navegador. " +
+      "Os itens permanecem no carrinho."
+    );
+  } finally {
+    if (button) button.disabled = false;
+  }
+}
+    
+
+    
     function escapeHtml(text) {
       if (!text) return '';
       return String(text)
